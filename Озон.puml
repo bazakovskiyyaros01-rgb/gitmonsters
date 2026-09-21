@@ -1,0 +1,63 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+title Диаграмма вариантов использования: Локализованная версия Ozon (Беларусь)
+
+' Определение актеров (Actors)
+actor "Белорусский Клиент" as Client
+actor "Белорусский Поставщик" as Supplier
+actor "Служба доставки (Белпочта)" as Belpochta
+actor "Платежная система (ЕРИП/Белкарт)" as PaymentSystem
+actor "Белорусский Банк-партнер" as LocalBank
+
+rectangle "Маркетплейс Ozon.by" {
+    
+    ' Функционал для Поставщиков
+    usecase "Управление товарами" as UC_ManageGoods
+    usecase "Размещение товаров на локальных складах" as UC_LocalWarehouse
+    
+    ' Функционал для Клиентов (Заказ и Доставка)
+    usecase "Поиск и фильтрация товаров" as UC_Search
+    usecase "Заказ товаров с белорусских складов" as UC_OrderBY
+    usecase "Отслеживание доставки" as UC_Track
+    usecase "Доставка через инфраструктуру Белпочты" as UC_BelpochtaDelivery
+    
+    ' Оплата и Финансы
+    usecase "Оплата заказа" as UC_Payment
+    usecase "Оплата через Белкарт / ЕРИП" as UC_LocalPay
+    usecase "Оформление рассрочки" as UC_Installment
+    
+    ' Дополнительные сервисы (Расширения)
+    usecase "Оформление подписки Ozon Premium" as UC_Premium
+    usecase "Применение локальных промокодов" as UC_Promo
+}
+
+' Связи для Поставщика
+Supplier --> UC_ManageGoods
+UC_ManageGoods <|-- UC_LocalWarehouse : <<include>>
+
+' Связи для Клиента
+Client --> UC_Search
+Client --> UC_OrderBY
+Client --> UC_Track
+
+' Логика доставки
+UC_Track <|-- UC_BelpochtaDelivery : <<include>>
+UC_BelpochtaDelivery --> Belpochta
+
+' Логика оплаты
+Client --> UC_Payment
+UC_Payment <|-- UC_LocalPay : <<include>>
+UC_LocalPay --> PaymentSystem
+
+' Отношения расширения (extend) для дополнительных услуг
+UC_Payment <. UC_Installment : <<extend>>
+UC_Installment --> LocalBank
+
+UC_OrderBY <. UC_Premium : <<extend>>
+UC_OrderBY <. UC_Promo : <<extend>>
+
+@endum
+
+
