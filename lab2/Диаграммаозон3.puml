@@ -1,0 +1,41 @@
+@startuml
+title Бронирование и самовывоз товара
+
+actor Покупатель as Buyer
+participant "Приложение Ozon" as App
+participant "Сервер Ozon" as Server
+participant "Система склада (WMS)" as WMS
+participant "Терминал ПВЗ" as Terminal
+
+' 1. Резервирование
+Buyer -> App: Выбрать "Самовывоз из ПВЗ"
+App -> Server: Оформить заказ
+Server -> WMS: Зарезервировать товар в ПВЗ
+WMS --> Server: Товар заблокирован (включен таймер)
+Server --> App: Ожидание оплаты
+App --> Buyer: Экран оплаты (резерв ограничен)
+
+alt Сценарий А: Время вышло (Оплаты нет)
+    Server -> Server: Таймер истек
+    Server -> WMS: Отменить резерв
+    WMS -> WMS: Вернуть товар в общую продажу
+    Server -> App: Заказ отменен
+    App --> Buyer: Уведомление: "Время резерва истекло"
+else Сценарий Б: Успешная оплата и получение
+    Buyer -> App: Оплатить заказ
+    App -> Server: Провести оплату
+    Server -> Server: Создать код получения
+    Server --> App: Код получения
+    App --> Buyer: Показать код покупателю
+    
+    ... Покупатель пришел в ПВЗ ...
+    
+    Buyer -> Terminal: Показать код сотруднику
+    Terminal -> Server: Проверить код
+    Server --> Terminal: Код верный, резерв активен
+    Terminal -> WMS: Списать товар с остатков ПВЗ
+    WMS --> Terminal: Списание подтверждено
+    Terminal --> Buyer: Выдать товар покупателю
+end
+
+@enduml
